@@ -1,0 +1,181 @@
+﻿<Window x:Class="TextEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Текстовый редактор — ЛР4"
+        Height="900"
+        Width="1200"
+        MinHeight="700"
+        MinWidth="950"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.InputBindings>
+        <KeyBinding Key="N" Modifiers="Control" Command="ApplicationCommands.New"/>
+        <KeyBinding Key="O" Modifiers="Control" Command="ApplicationCommands.Open"/>
+        <KeyBinding Key="S" Modifiers="Control" Command="ApplicationCommands.Save"/>
+        <KeyBinding Key="A" Modifiers="Control" Command="ApplicationCommands.SelectAll"/>
+        <KeyBinding Key="X" Modifiers="Control" Command="ApplicationCommands.Cut"/>
+        <KeyBinding Key="C" Modifiers="Control" Command="ApplicationCommands.Copy"/>
+        <KeyBinding Key="V" Modifiers="Control" Command="ApplicationCommands.Paste"/>
+        <KeyBinding Key="Z" Modifiers="Control" Command="ApplicationCommands.Undo"/>
+        <KeyBinding Key="Y" Modifiers="Control" Command="ApplicationCommands.Redo"/>
+        <KeyBinding Key="F6" Command="Search"/>
+    </Window.InputBindings>
+
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.New" Executed="CreateFile_Click"/>
+        <CommandBinding Command="ApplicationCommands.Open" Executed="OpenFile_Click"/>
+        <CommandBinding Command="ApplicationCommands.Save" Executed="SaveFile_Click"/>
+        <CommandBinding Command="ApplicationCommands.SelectAll" Executed="SelectAll_Click"/>
+        <CommandBinding Command="ApplicationCommands.Cut" Executed="Cut_Click"/>
+        <CommandBinding Command="ApplicationCommands.Copy" Executed="Copy_Click"/>
+        <CommandBinding Command="ApplicationCommands.Paste" Executed="Paste_Click"/>
+        <CommandBinding Command="ApplicationCommands.Undo" Executed="Undo_Click"/>
+        <CommandBinding Command="ApplicationCommands.Redo" Executed="Redo_Click"/>
+        <CommandBinding Command="Search" Executed="StartRegexSearch_Click"/>
+    </Window.CommandBindings>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_Файл">
+                <MenuItem Header="_Создать" Click="CreateFile_Click" InputGestureText="Ctrl+N"/>
+                <MenuItem Header="_Открыть" Click="OpenFile_Click" InputGestureText="Ctrl+O"/>
+                <MenuItem Header="_Сохранить" Click="SaveFile_Click" InputGestureText="Ctrl+S"/>
+                <MenuItem Header="Сохранить _как" Click="SaveAsFile_Click"/>
+                <Separator/>
+                <MenuItem Header="В_ыход" Click="Exit_Click"/>
+            </MenuItem>
+
+            <MenuItem Header="_Правка">
+                <MenuItem Header="_Отменить" Click="Undo_Click" InputGestureText="Ctrl+Z"/>
+                <MenuItem Header="_Повторить" Click="Redo_Click" InputGestureText="Ctrl+Y"/>
+                <Separator/>
+                <MenuItem Header="Вырезать" Click="Cut_Click" InputGestureText="Ctrl+X"/>
+                <MenuItem Header="Копировать" Click="Copy_Click" InputGestureText="Ctrl+C"/>
+                <MenuItem Header="Вставить" Click="Paste_Click" InputGestureText="Ctrl+V"/>
+                <MenuItem Header="Удалить" Click="Delete_Click"/>
+                <Separator/>
+                <MenuItem Header="Выделить _всё" Click="SelectAll_Click" InputGestureText="Ctrl+A"/>
+            </MenuItem>
+
+            <MenuItem Header="_ЛР4">
+                <MenuItem Header="Описание регулярных выражений" Click="RegexInfo_Click"/>
+                <MenuItem Header="Тестовые данные" Click="RegexExamples_Click"/>
+            </MenuItem>
+
+            <MenuItem Header="_Пуск">
+                <MenuItem Header="Запуск ЛР4 (F6)" Click="StartRegexSearch_Click"/>
+                <MenuItem Header="Очистить результаты" Click="ClearRegexResults_Click"/>
+            </MenuItem>
+
+            <MenuItem Header="_Справка">
+                <MenuItem Header="Справка" Click="Help_Click"/>
+                <MenuItem Header="О программе" Click="About_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <ToolBar DockPanel.Dock="Top">
+            <Button Content="Создать" Click="CreateFile_Click" Padding="10,3" Margin="2"/>
+            <Button Content="Открыть" Click="OpenFile_Click" Padding="10,3" Margin="2"/>
+            <Button Content="Сохранить" Click="SaveFile_Click" Padding="10,3" Margin="2"/>
+            <Separator/>
+            <Button Content="Отменить" Click="Undo_Click" Padding="10,3" Margin="2"/>
+            <Button Content="Повторить" Click="Redo_Click" Padding="10,3" Margin="2"/>
+            <Separator/>
+            <Button Content="Вырезать" Click="Cut_Click" Padding="10,3" Margin="2"/>
+            <Button Content="Копировать" Click="Copy_Click" Padding="10,3" Margin="2"/>
+            <Button Content="Вставить" Click="Paste_Click" Padding="10,3" Margin="2"/>
+            <Separator/>
+            <Button Content="Пуск" Click="StartRegexSearch_Click" Padding="12,3" Margin="2"/>
+        </ToolBar>
+
+        <Grid Margin="6">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2.2*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="1.5*"/>
+            </Grid.RowDefinitions>
+
+            <TextBox x:Name="EditorBox"
+                     Grid.Row="0"
+                     Margin="0,0,0,6"
+                     FontFamily="Consolas"
+                     FontSize="14"
+                     AcceptsReturn="True"
+                     AcceptsTab="True"
+                     TextWrapping="NoWrap"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     TextChanged="EditorBox_TextChanged"
+                     SelectionChanged="EditorBox_SelectionChanged"/>
+
+            <GroupBox Grid.Row="1" Header="Поиск подстрок с помощью регулярных выражений" Margin="0,0,0,6">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="280"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Тип поиска:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                    <ComboBox x:Name="SearchTypeComboBox"
+                              Grid.Column="1"
+                              Height="28"
+                              SelectedIndex="0">
+                        <ComboBoxItem Content="I блок — Логин"/>
+                        <ComboBoxItem Content="II блок — camelCase"/>
+                        <ComboBoxItem Content="III блок — Дата YYYY-MM-DD"/>
+                    </ComboBox>
+
+                    <Button Grid.Column="2"
+                            Content="Найти"
+                            Click="StartRegexSearch_Click"
+                            Padding="14,4"
+                            Margin="10,0,0,0"/>
+
+                    <Button Grid.Column="3"
+                            Content="Очистить"
+                            Click="ClearRegexResults_Click"
+                            Padding="14,4"
+                            Margin="8,0,0,0"/>
+
+                    <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <TextBlock Text="Количество совпадений: " FontWeight="Bold" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="MatchCountText" Text="0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Grid.Row="2" Header="Результаты поиска">
+                <DataGrid x:Name="RegexResultsGrid"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          SelectionChanged="RegexResultsGrid_SelectionChanged"
+                          RowHeaderWidth="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Найденная подстрока" Binding="{Binding MatchText}" Width="*"/>
+                        <DataGridTextColumn Header="Начальная позиция: строка" Binding="{Binding Line}" Width="160"/>
+                        <DataGridTextColumn Header="Начальная позиция: символ" Binding="{Binding Column}" Width="170"/>
+                        <DataGridTextColumn Header="Длина" Binding="{Binding Length}" Width="90"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+        </Grid>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusText" Text="Готов к работе"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock x:Name="CursorPositionText" Text="Стр: 1, Стб: 1"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock x:Name="FileInfoText" Text="Новый документ"/>
+            </StatusBarItem>
+        </StatusBar>
+    </DockPanel>
+</Window>
