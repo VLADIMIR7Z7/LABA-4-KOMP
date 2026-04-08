@@ -341,6 +341,31 @@ CamelCase
 
 ### Схема автомата
 
+<img width="593" height="318" alt="image" src="https://github.com/user-attachments/assets/bc6063b2-f1a2-41ff-ba9a-a4e3addee7b3" />
+
+## Тестирование алгоритма (блок 2 — автомат)
+
+Для проверки работы алгоритма, реализованного через граф конечного автомата, использовался следующий текст:
+
+```
+camelCase
+simpleVar2
+x
+badCamelCase
+user1
+
+CamelCase
+my-login
+alpha.beta
+bad_login
+123abc
+```
+Проверка поиска и вывода:
+<img width="1177" height="883" alt="image" src="https://github.com/user-attachments/assets/2477089e-4110-4c43-aa87-82f46b3b3eec" />
+
+<img width="1175" height="883" alt="image" src="https://github.com/user-attachments/assets/7dd7ee83-bb52-4cd3-987f-1c57b1b79b39" />
+
+<img width="1172" height="881" alt="image" src="https://github.com/user-attachments/assets/a04b32de-81ca-4a97-9e85-38d28a5b3553" />
 
 ## Вывод
 
