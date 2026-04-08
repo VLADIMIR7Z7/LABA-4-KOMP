@@ -29,6 +29,16 @@ namespace TextEditor
             public int LineNumber { get; set; }
         }
 
+        // Дополнительное задание:
+        // автомат для блока 2 (camelCase)
+        private enum CamelCaseState
+        {
+            Start,
+            FirstLowercase,
+            LettersOrDigits,
+            Error
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -158,12 +168,14 @@ namespace TextEditor
 
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
-            if (EditorBox.CanUndo) EditorBox.Undo();
+            if (EditorBox.CanUndo)
+                EditorBox.Undo();
         }
 
         private void Redo_Click(object sender, RoutedEventArgs e)
         {
-            if (EditorBox.CanRedo) EditorBox.Redo();
+            if (EditorBox.CanRedo)
+                EditorBox.Redo();
         }
 
         private void Cut_Click(object sender, RoutedEventArgs e) => EditorBox.Cut();
@@ -173,7 +185,9 @@ namespace TextEditor
         private void SelectAll_Click(object sender, RoutedEventArgs e) => EditorBox.SelectAll();
 
         // =========================
-        // ЛР4 — поиск regex
+        // ЛР4 — поиск
+        // Блок 2: через автомат
+        // Блоки 1 и 3: через Regex
         // =========================
 
         private string GetCurrentPattern()
@@ -181,17 +195,67 @@ namespace TextEditor
             switch (SearchTypeComboBox.SelectedIndex)
             {
                 case 0:
+                    // Блок 1 — логин
                     return @"^[A-Za-z][A-Za-z0-9.-]*$";
 
                 case 1:
+                    // Блок 2 — camelCase
+                    // Для доп. задания поиск идет через автомат,
+                    // это выражение оставлено только для справки
                     return @"^[a-z][a-zA-Z0-9]*$";
 
                 case 2:
+                    // Блок 3 — дата
                     return @"^(?:(?:(?:[0-9]{4}-(?:(?:01|03|05|07|08|10|12)-(?:0[1-9]|[12][0-9]|3[01])|(?:04|06|09|11)-(?:0[1-9]|[12][0-9]|30)|02-(?:0[1-9]|1[0-9]|2[0-8]))))|(?:(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])|(?:0[48]|[2468][048]|[13579][26])00)-02-29))$";
 
                 default:
                     return string.Empty;
             }
+        }
+
+        // Дополнительное задание:
+        // автомат для camelCase
+        private bool IsCamelCaseByAutomaton(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return false;
+
+            CamelCaseState state = CamelCaseState.Start;
+
+            foreach (char ch in input)
+            {
+                switch (state)
+                {
+                    case CamelCaseState.Start:
+                        if (ch >= 'a' && ch <= 'z')
+                            state = CamelCaseState.FirstLowercase;
+                        else
+                            state = CamelCaseState.Error;
+                        break;
+
+                    case CamelCaseState.FirstLowercase:
+                    case CamelCaseState.LettersOrDigits:
+                        if ((ch >= 'a' && ch <= 'z') ||
+                            (ch >= 'A' && ch <= 'Z') ||
+                            (ch >= '0' && ch <= '9'))
+                        {
+                            state = CamelCaseState.LettersOrDigits;
+                        }
+                        else
+                        {
+                            state = CamelCaseState.Error;
+                        }
+                        break;
+
+                    case CamelCaseState.Error:
+                        return false;
+                }
+
+                if (state == CamelCaseState.Error)
+                    return false;
+            }
+
+            return state == CamelCaseState.FirstLowercase || state == CamelCaseState.LettersOrDigits;
         }
 
         private List<LineInfo> GetLinesWithPositions(string text)
@@ -230,20 +294,32 @@ namespace TextEditor
         private List<SubstringSearchResult> FindRegexMatches(string text)
         {
             var results = new List<SubstringSearchResult>();
-            Regex regex = new Regex(GetCurrentPattern());
 
             foreach (LineInfo line in GetLinesWithPositions(text))
             {
-                Match match = regex.Match(line.Text);
+                bool isMatch = false;
 
-                if (match.Success && match.Value == line.Text)
+                // Блок 2 — через автомат
+                if (SearchTypeComboBox.SelectedIndex == 1)
+                {
+                    isMatch = IsCamelCaseByAutomaton(line.Text);
+                }
+                else
+                {
+                    // Блоки 1 и 3 — через Regex
+                    Regex regex = new Regex(GetCurrentPattern());
+                    Match match = regex.Match(line.Text);
+                    isMatch = match.Success && match.Value == line.Text;
+                }
+
+                if (isMatch)
                 {
                     results.Add(new SubstringSearchResult
                     {
-                        MatchText = match.Value,
+                        MatchText = line.Text,
                         Line = line.LineNumber,
                         Column = 1,
-                        Length = match.Length,
+                        Length = line.Text.Length,
                         AbsoluteIndex = line.StartIndex
                     });
                 }
@@ -277,7 +353,11 @@ namespace TextEditor
                 }
                 else
                 {
-                    StatusText.Text = $"Найдено совпадений: {results.Count}";
+                    if (SearchTypeComboBox.SelectedIndex == 1)
+                        StatusText.Text = $"Найдено совпадений: {results.Count} (блок 2 — автомат)";
+                    else
+                        StatusText.Text = $"Найдено совпадений: {results.Count}";
+
                     RegexResultsGrid.SelectedIndex = 0;
                 }
             }
@@ -309,6 +389,7 @@ namespace TextEditor
             {
                 EditorBox.Focus();
                 EditorBox.Select(item.AbsoluteIndex, item.Length);
+                EditorBox.SelectionBrush = System.Windows.Media.Brushes.Yellow;
                 EditorBox.ScrollToLine(Math.Max(0, item.Line - 1));
                 StatusText.Text = $"Выделена подстрока: строка {item.Line}, символ {item.Column}";
             }
@@ -321,7 +402,7 @@ namespace TextEditor
         private void RegexInfo_Click(object sender, RoutedEventArgs e)
         {
             ShowInfoWindow(
-                "Регулярные выражения",
+                "Регулярные выражения и автомат",
                 "I блок. Логин\n" +
                 @"^[A-Za-z][A-Za-z0-9.-]*$" + "\n\n" +
                 "Описание:\n" +
@@ -333,7 +414,8 @@ namespace TextEditor
                 @"^[a-z][a-zA-Z0-9]*$" + "\n\n" +
                 "Описание:\n" +
                 "- начинается со строчной буквы;\n" +
-                "- затем идут буквы и цифры.\n\n" +
+                "- затем идут буквы и цифры.\n" +
+                "- для дополнительного задания реализован поиск через граф автомата.\n\n" +
 
                 "III блок. Дата YYYY-MM-DD с учётом високосных годов\n" +
                 "Используется полное регулярное выражение из вашего варианта.");
@@ -378,7 +460,9 @@ namespace TextEditor
                 "2. Выберите тип поиска.\n" +
                 "3. Нажмите «Пуск» или F6.\n" +
                 "4. Выберите строку в таблице результатов.\n" +
-                "5. Найденная подстрока будет выделена в тексте.");
+                "5. Найденная подстрока будет выделена в тексте.\n\n" +
+                "Доп. задание:\n" +
+                "Для блока 2 поиск реализован через конечный автомат.");
         }
 
         private void About_Click(object sender, RoutedEventArgs e)
@@ -386,10 +470,10 @@ namespace TextEditor
             ShowInfoWindow(
                 "О программе",
                 "Текстовый редактор для лабораторной работы 4.\n\n" +
-                "Реализован поиск подстрок с помощью регулярных выражений:\n" +
-                "- логин;\n" +
-                "- переменная camelCase;\n" +
-                "- дата YYYY-MM-DD.\n\n" +
+                "Реализован поиск подстрок:\n" +
+                "- блок 1: логин (Regex);\n" +
+                "- блок 2: camelCase (автомат);\n" +
+                "- блок 3: дата YYYY-MM-DD (Regex).\n\n" +
                 "Сканер и парсер полностью удалены.");
         }
 
