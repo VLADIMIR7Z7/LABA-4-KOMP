@@ -341,7 +341,7 @@ CamelCase
 
 ### Схема автомата
 
-<img width="593" height="318" alt="image" src="https://github.com/user-attachments/assets/bc6063b2-f1a2-41ff-ba9a-a4e3addee7b3" />
+<img width="835" height="343" alt="image" src="https://github.com/user-attachments/assets/39a74622-7350-454f-8c35-a0e33ec65afd" />
 
 ## Тестирование алгоритма (блок 2 — автомат)
 
